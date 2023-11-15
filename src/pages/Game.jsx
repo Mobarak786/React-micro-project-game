@@ -76,29 +76,32 @@ const Game = ({ symbol }) => {
     // if the player is winner
     if (playerOwn.length > 0) {
       setWinner("player");
+      setComputersturn(false);
       setUserscore(() => userscore + 1);
-      setOpen(true);
+      setTimeout(() => {
+        setOpen(true);
+      }, 1000);
       return;
     }
 
     // if the computer is winner
     if (computerOwn.length > 0) {
+      setWinner("computer");
+      setPcscore(() => pcscore + 1);
       setTimeout(() => {
-        setWinner("computer");
-        setPcscore(() => pcscore + 1);
         setOpen(true);
-      }, 500);
+      }, 1000);
       return;
     }
 
     // if the game is tie
     const ties = squares.filter((square) => square === null);
     if (ties.length === 0) {
+      setWinner("tie");
+      setTie(() => tie + 1);
       setTimeout(() => {
-        setWinner("tie");
-        setTie(() => tie + 1);
         setOpen(true);
-      }, 500);
+      }, 1000);
       return;
     }
 
