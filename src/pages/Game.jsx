@@ -1,24 +1,18 @@
 import React, { useEffect, useState } from "react";
-import Quotes from "./Quotes";
-import circle from "../assets/circle.png";
+
 import cross from "../assets/cross.png";
+import circle from "../assets/circle.png";
 import empty from "../assets/empty.png";
-import PopUp from "./PopUp";
-import ScoreBoard from "./ScoreBoard";
-import GameHeader from "./GameHeader";
+
+import Quotes from "../components/Quotes";
+import PopUp from "../components/PopUp";
+import ScoreBoard from "../components/ScoreBoard";
+import GameHeader from "../components/GameHeader";
+
+import { SetGameScore, playSound } from "../functions";
+import { linesWhichAre } from "../functions";
 
 const defaultSquare = () => new Array(9).fill(null);
-
-const Lines = [
-  [0, 1, 2],
-  [3, 4, 5],
-  [6, 7, 8],
-  [0, 3, 6],
-  [1, 4, 7],
-  [2, 5, 8],
-  [2, 4, 6],
-  [0, 4, 8],
-];
 
 const Game = ({ symbol }) => {
   const [squares, setSquares] = useState(defaultSquare);
@@ -27,23 +21,38 @@ const Game = ({ symbol }) => {
   const [open, setOpen] = useState(false);
   const [refress, setRefress] = useState(false);
   const [winner, setWinner] = useState("");
+
   const [pcscore, setPcscore] = useState(
     Number(JSON.parse(localStorage.getItem("pc-score"))) || 0
   );
+
   const [userscore, setUserscore] = useState(
     Number(JSON.parse(localStorage.getItem("user-score"))) || 0
   );
+
   const [tie, setTie] = useState(
     Number(JSON.parse(localStorage.getItem("tie-score"))) || 0
   );
+
+  const handleClick = (index, square) => {
+    if (square === "X" || square === "O") {
+      return;
+    }
+    let newSquares = squares;
+    player === "cross" ? (newSquares[index] = "X") : (newSquares[index] = "O");
+    setSquares([...newSquares]);
+    playSound();
+    setComputersturn(true);
+  };
+
   const handleRefress = () => {
     setOpen(true);
     setRefress(true);
   };
+
+  // for setting the game score in localStorage
   useEffect(() => {
-    localStorage.setItem("pc-score", JSON.stringify(pcscore));
-    localStorage.setItem("user-score", JSON.stringify(userscore));
-    localStorage.setItem("tie-score", JSON.stringify(tie));
+    SetGameScore(userscore, pcscore, tie);
   }, [winner]);
 
   // fetches the player symbol from local storage..
@@ -51,44 +60,38 @@ const Game = ({ symbol }) => {
     setPlayer(JSON.parse(localStorage.getItem("player") || null));
   }, [symbol]);
 
-  //  this useEffcet runs the functions for the computer after the players turn..
   useEffect(() => {
-    const linesWhichAre = (a, b, c) => {
-      return Lines.filter((squareIndex) => {
-        const squareValues = squareIndex.map((index) => squares[index]);
-        return (
-          JSON.stringify([a, b, c].sort()) ===
-          JSON.stringify(squareValues.sort())
-        );
-      });
-    };
-
+    // this method determines if the player is winner
     const playerOwn =
       player === "cross"
-        ? linesWhichAre("X", "X", "X")
-        : linesWhichAre("O", "O", "O");
+        ? linesWhichAre("X", "X", "X", squares)
+        : linesWhichAre("O", "O", "O", squares);
+
+    // this method determines if the computer is winner
     const computerOwn =
       player === "circle"
-        ? linesWhichAre("X", "X", "X")
-        : linesWhichAre("O", "O", "O");
+        ? linesWhichAre("X", "X", "X", squares)
+        : linesWhichAre("O", "O", "O", squares);
 
+    // if the player is winner
     if (playerOwn.length > 0) {
       setWinner("player");
       setUserscore(() => userscore + 1);
-
       setOpen(true);
-
       return;
     }
+
+    // if the computer is winner
     if (computerOwn.length > 0) {
       setTimeout(() => {
         setWinner("computer");
         setPcscore(() => pcscore + 1);
-
         setOpen(true);
       }, 500);
       return;
     }
+
+    // if the game is tie
     const ties = squares.filter((square) => square === null);
     if (ties.length === 0) {
       setTimeout(() => {
@@ -98,10 +101,13 @@ const Game = ({ symbol }) => {
       }, 500);
       return;
     }
+
+    // calculates the remaining empty turns to play for the computer
     const emptySquares = squares
       .map((square, index) => (square === null ? index : null))
       .filter((square) => square !== null);
 
+    //putting the computer value at its position
     const putComputerAt = (index) => {
       let newSquares = squares;
       player === "circle"
@@ -109,57 +115,58 @@ const Game = ({ symbol }) => {
         : (newSquares[index] = "O");
       setSquares([...newSquares]);
     };
+
     const randomIndex =
       emptySquares[Math.ceil(Math.random() * emptySquares.length)];
 
     if (computersturn) {
-      // winning logic for the computer play next turn
+      // winning logic for the computer to play next turn
       const LinesToWin =
         player === "circle"
-          ? linesWhichAre("X", "X", null)
-          : linesWhichAre("O", "O", null);
+          ? linesWhichAre("X", "X", null, squares)
+          : linesWhichAre("O", "O", null, squares);
       if (LinesToWin.length > 0) {
         const winIndex = LinesToWin[0].filter(
           (index) => squares[index] === null
         );
-        putComputerAt(winIndex[0]);
-        setComputersturn(false);
+        setTimeout(() => {
+          putComputerAt(winIndex[0]);
+          playSound();
+          setComputersturn(false);
+        }, 1000);
         return;
       }
       // blocking the players position by computer
       const linesToBlock =
         player === "circle"
-          ? linesWhichAre("O", "O", null)
-          : linesWhichAre("X", "X", null);
+          ? linesWhichAre("O", "O", null, squares)
+          : linesWhichAre("X", "X", null, squares);
       if (linesToBlock.length > 0) {
         const blockIndex = linesToBlock[0].filter(
           (index) => squares[index] === null
         );
-
-        putComputerAt(blockIndex[0]);
-        setComputersturn(false);
+        setTimeout(() => {
+          putComputerAt(blockIndex[0]);
+          playSound();
+          setComputersturn(false);
+        }, 1000);
         return;
       }
-      // random position for the computer to play
-      putComputerAt(randomIndex);
-      setComputersturn(false);
+
+      //random position for the computer to play it turn
+      setTimeout(() => {
+        putComputerAt(randomIndex);
+        playSound();
+        setComputersturn(false);
+      }, 1000);
     }
   }, [computersturn]);
-
-  const handleClick = (index, square) => {
-    if (square === "X" || square === "O") {
-      return;
-    }
-    let newSquares = squares;
-    player === "cross" ? (newSquares[index] = "X") : (newSquares[index] = "O");
-    setSquares([...newSquares]);
-    setComputersturn(true);
-  };
 
   return (
     <main className="game-mainpage">
       <div className="game-homepage">
         {/* game header section */}
+
         <GameHeader
           player={player}
           computersturn={computersturn}
@@ -167,6 +174,7 @@ const Game = ({ symbol }) => {
         />
 
         {/* game play section  */}
+
         <div className="game-board">
           {squares.map((square, index) => (
             <div
@@ -186,6 +194,7 @@ const Game = ({ symbol }) => {
         </div>
 
         {/* game scoreboard section  */}
+
         <ScoreBoard
           player={player}
           userscore={userscore}
@@ -194,6 +203,7 @@ const Game = ({ symbol }) => {
         />
 
         {/* show poup-bar on game over */}
+
         {open && (
           <div className="poup-bar">
             <PopUp
@@ -209,6 +219,7 @@ const Game = ({ symbol }) => {
           </div>
         )}
       </div>
+
       <Quotes />
     </main>
   );

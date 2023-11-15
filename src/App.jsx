@@ -1,8 +1,8 @@
 import { useState } from "react";
-import "./App.css";
-import Game from "./components/Game";
-import Home from "./components/Home";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import "./App.css";
+import Game from "./pages/Game";
+import Home from "./pages/Home";
 
 function App() {
   const [symbol, setSymbol] = useState("");

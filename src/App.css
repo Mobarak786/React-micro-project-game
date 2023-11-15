@@ -9,6 +9,12 @@
 .html {
   font-family: DM Sans;
 }
+body {
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  margin: 0;
+}
 .main-section {
   position: relative;
   width: 100%;
@@ -337,12 +343,13 @@ h2 {
   background-color: rgba(247, 179, 54, 1);
 }
 
-@media screen and (max-width: 420px) {
+@media screen and (max-width: 390px) {
   .main-section {
     width: 100%;
-    height: 100%;
+    height: 100vh;
     background: #192a32;
   }
+
   .game-homepage {
     margin: 0;
     border-radius: 0;

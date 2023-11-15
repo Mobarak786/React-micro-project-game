@@ -1,8 +1,8 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import toast, { Toaster } from "react-hot-toast";
-import Quotes from "./Quotes";
 
+import Quotes from "../components/Quotes";
 import circle from "../assets/circle.png";
 import cross from "../assets/cross.png";
 
@@ -12,7 +12,7 @@ const Home = ({ setSymbol, symbol }) => {
     if (symbol !== "") {
       localStorage.setItem("player", JSON.stringify(symbol));
       navigate("/game");
-    } else toast("!Please Select The Player");
+    } else toast("please select a player");
   };
 
   const notify = async () => {
