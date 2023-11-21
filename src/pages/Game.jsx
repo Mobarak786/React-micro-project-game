@@ -9,7 +9,7 @@ import PopUp from "../components/PopUp";
 import ScoreBoard from "../components/ScoreBoard";
 import GameHeader from "../components/GameHeader";
 
-import { SetGameScore, playSound } from "../functions";
+import { RoundNumber, SetGameScore, playSound } from "../functions";
 import { linesWhichAre } from "../functions";
 
 const defaultSquare = () => new Array(9).fill(null);
@@ -21,6 +21,7 @@ const Game = ({ symbol }) => {
   const [open, setOpen] = useState(false);
   const [refress, setRefress] = useState(false);
   const [winner, setWinner] = useState("");
+  const [finalwinner, setFinalwinner] = useState("");
 
   const [pcscore, setPcscore] = useState(
     Number(JSON.parse(localStorage.getItem("pc-score"))) || 0
@@ -32,6 +33,10 @@ const Game = ({ symbol }) => {
 
   const [tie, setTie] = useState(
     Number(JSON.parse(localStorage.getItem("tie-score"))) || 0
+  );
+
+  const [round, setRound] = useState(
+    Number(JSON.parse(localStorage.getItem("roundno"))) || 0
   );
 
   const handleClick = (index, square) => {
@@ -46,19 +51,29 @@ const Game = ({ symbol }) => {
   };
 
   const handleRefress = () => {
-    setOpen(true);
     setRefress(true);
+    setOpen(true);
   };
-
-  // for setting the game score in localStorage
-  useEffect(() => {
-    SetGameScore(userscore, pcscore, tie);
-  }, [winner]);
 
   // fetches the player symbol from local storage..
   useEffect(() => {
     setPlayer(JSON.parse(localStorage.getItem("player") || null));
   }, [symbol]);
+
+  useEffect(() => {
+    // for setting the gamescore & round in localStorage
+    RoundNumber(round);
+    SetGameScore(pcscore, userscore, tie);
+
+    //calulating final winner to show in popup
+    if (round === 5) {
+      userscore > pcscore && userscore > tie
+        ? setFinalwinner("🎉🎉YOU ARE THE FINAL WINNER🎉🎉")
+        : pcscore > userscore && pcscore > tie
+        ? setFinalwinner("🎉🎉PC IS THE FINAL WINNER🎉🎉")
+        : setFinalwinner("🌟🌟THE GAME IS TIE🌟🌟");
+    }
+  }, [winner, refress]);
 
   useEffect(() => {
     // this method determines if the player is winner
@@ -75,9 +90,9 @@ const Game = ({ symbol }) => {
 
     // if the player is winner
     if (playerOwn.length > 0) {
-      setWinner("player");
-      setComputersturn(false);
       setUserscore(() => userscore + 1);
+      setRound(() => round + 1);
+      setWinner("player");
       setTimeout(() => {
         setOpen(true);
       }, 1000);
@@ -86,8 +101,10 @@ const Game = ({ symbol }) => {
 
     // if the computer is winner
     if (computerOwn.length > 0) {
-      setWinner("computer");
       setPcscore(() => pcscore + 1);
+      setRound(() => round + 1);
+      setWinner("computer");
+      setComputersturn(false);
       setTimeout(() => {
         setOpen(true);
       }, 1000);
@@ -97,8 +114,9 @@ const Game = ({ symbol }) => {
     // if the game is tie
     const ties = squares.filter((square) => square === null);
     if (ties.length === 0) {
-      setWinner("tie");
       setTie(() => tie + 1);
+      setRound(() => round + 1);
+      setWinner("tie");
       setTimeout(() => {
         setOpen(true);
       }, 1000);
@@ -205,12 +223,13 @@ const Game = ({ symbol }) => {
           tie={tie}
         />
 
-        {/* show poup-bar on game over */}
+        {/* show the popup on game over */}
 
         {open && (
           <div className="poup-bar">
             <PopUp
               winner={winner}
+              setWinner={setWinner}
               setSquares={setSquares}
               setComputersturn={setComputersturn}
               setOpen={setOpen}
@@ -218,6 +237,13 @@ const Game = ({ symbol }) => {
               refress={refress}
               defaultSquare={defaultSquare}
               player={player}
+              round={round}
+              setRound={setRound}
+              setTie={setTie}
+              setUserscore={setUserscore}
+              setPcscore={setPcscore}
+              finalwinner={finalwinner}
+              setFinalwinner={setFinalwinner}
             />
           </div>
         )}

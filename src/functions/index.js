@@ -17,6 +17,11 @@ export const SetGameScore = (pcscore, userscore, tie) => {
   localStorage.setItem("tie-score", JSON.stringify(tie));
 };
 
+// setting the round
+export const RoundNumber = (round) => {
+  localStorage.setItem("roundno", JSON.stringify(round));
+};
+
 // determines the lines
 export const linesWhichAre = (a, b, c, squares) => {
   return Lines.filter((squareIndex) => {

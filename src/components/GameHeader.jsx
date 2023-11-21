@@ -3,7 +3,7 @@ import refressicon from "../assets/refress.png";
 import circle from "../assets/circle.png";
 import cross from "../assets/cross.png";
 
-const GameHeader = ({ player, handleRefress }) => {
+const GameHeader = ({ player, handleRefress, computersturn }) => {
   return (
     <div className="game-header">
       <div className="game-icons" id="game-icon">
@@ -11,7 +11,18 @@ const GameHeader = ({ player, handleRefress }) => {
         <img src={player === "cross" ? circle : cross} alt="icon" />
       </div>
       <div className="game-icons" id="whose-turn">
-        <img src={player === "circle" ? circle : cross} alt="icon" />
+        <img
+          src={
+            player === "circle"
+              ? computersturn
+                ? cross
+                : circle
+              : computersturn
+              ? circle
+              : cross
+          }
+          alt="icon"
+        />
         <h1>TURN</h1>
       </div>
       <div className="game-icons" id="refress-icon">
